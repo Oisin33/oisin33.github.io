@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DarkScan — dark pattern detector (live demo)</title>
+<meta name="description" content="Detect manipulative 'dark pattern' UI in any web page text. Runs a trained ML cascade entirely in your browser." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0c10; --panel: #12161e; --panel2: #0d1017; --line: #1e2430;
+    --text: #e8ecf4; --muted: #8899aa; --dim: #6b7a99;
+    --red: #ff3b5c; --orange: #ff8c42; --amber: #ffb347;
+    --green: #00d68f; --blue: #4e9eff; --purple: #a855f7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: 'Outfit', system-ui, sans-serif; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+  .logo { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .logo span { color: var(--red); font-size: 26px; }
+  .tag { color: var(--dim); font-size: 13px; }
+  .lede { color: var(--muted); font-size: 15px; max-width: 680px; margin: 14px 0 26px; }
+  .lede strong { color: var(--text); font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 840px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .card h2 { font-size: 13px; font-weight: 700; margin: 0 0 12px; letter-spacing: 0.02em; }
+
+  textarea {
+    width: 100%; min-height: 230px; resize: vertical;
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 10px;
+    color: var(--text); padding: 12px 14px; font-size: 13px; line-height: 1.6;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  textarea:focus { outline: none; border-color: var(--blue); }
+
+  .examples { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0 4px; }
+
+  .tabs { display:flex; gap:4px; margin-bottom:14px; border-bottom:1px solid var(--line); }
+  .tab { background:none; border:none; color:var(--dim); font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; padding:8px 14px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
+  .tab:hover { color:var(--muted); }
+  .tab.active { color:var(--text); border-bottom-color:var(--red); }
+  .urlbox { width:100%; background:var(--panel2); border:1px solid var(--line); border-radius:10px; color:var(--text); padding:12px 14px; font-size:14px; font-family:'JetBrains Mono',monospace; }
+  .urlbox:focus { outline:none; border-color:var(--blue); }
+  .url-note { font-size:11.5px; color:var(--dim); line-height:1.6; margin:14px 0 0; }
+  .chip {
+    background: #1a1f2a; border: 1px solid var(--line); color: var(--muted);
+    border-radius: 20px; padding: 5px 12px; font-size: 11.5px; cursor: pointer;
+    font-family: 'Outfit', sans-serif; transition: all .15s;
+  }
+  .chip:hover { border-color: var(--blue); color: var(--text); }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 14px; align-items: center; }
+  .btn {
+    background: var(--red); color: #0a0c10; border: none; border-radius: 8px;
+    padding: 11px 22px; font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+  }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.secondary { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .status { font-size: 12px; color: var(--dim); }
+
+  /* results */
+  .risk { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .pill { border-radius: 5px; padding: 4px 11px; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+  .scoretrack { flex: 1; height: 7px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .scorefill { height: 100%; border-radius: 4px; transition: width .4s; }
+
+  .det { background: var(--panel2); border: 1px solid var(--line); border-left-width: 3px; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .det-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 5px; }
+  .det-name { font-size: 13.5px; font-weight: 600; }
+  .det-cat { font-size: 10px; color: var(--dim); margin-top: 1px; }
+  .badge { font-size: 9.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+  .ev { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--blue); background: #4e9eff11; border: 1px solid #4e9eff22; border-radius: 4px; padding: 4px 8px; margin: 4px 0 0; word-break: break-word; }
+  .rec { font-size: 11px; color: var(--green); margin-top: 7px; }
+  .empty { color: var(--green); font-size: 13px; font-family: 'JetBrains Mono', monospace; padding: 8px 0; }
+  .placeholder { color: var(--dim); font-size: 13px; padding: 20px 0; text-align: center; }
+
+  .how { margin-top: 36px; }
+  .how summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--text); }
+  .how-body { color: var(--muted); font-size: 13.5px; line-height: 1.7; margin-top: 14px; }
+  .how-body code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #1a1f2a; padding: 1px 5px; border-radius: 4px; color: var(--amber); }
+  .tiers { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .tier { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 12px; }
+  .tier b { color: var(--text); }
+
+  footer { margin-top: 44px; color: var(--dim); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 18px; }
+
+  .hood { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .hood-title { font-size: 19px; font-weight: 700; margin: 0 0 8px; }
+  .hood-intro { color: var(--muted); font-size: 14.5px; max-width: 720px; margin: 0 0 24px; }
+  .hood-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 30px; }
+  .hood-card { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .hood-h { font-size: 14px; font-weight: 700; color: var(--text); }
+  .hood-t { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--blue); margin: 2px 0 9px; }
+  .hood-card p { font-size: 12.5px; color: var(--muted); margin: 0; line-height: 1.6; }
+  .hood-card code { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #1a1f2a; padding: 1px 4px; border-radius: 3px; color: var(--amber); }
+  .hood-sub { font-size: 14px; font-weight: 700; margin: 26px 0 12px; }
+  .hood-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 11px; }
+  .hood-list li { font-size: 13.5px; color: var(--muted); line-height: 1.65; padding-left: 20px; position: relative; }
+  .hood-list li::before { content: "→"; position: absolute; left: 0; color: var(--green); }
+  .hood-list b { color: var(--text); font-weight: 600; }
+  .hood-list code { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; background: #1a1f2a; padding: 1px 4px; border-radius: 3px; color: var(--amber); }
+  .hood-foot { font-size: 13px; color: var(--muted); margin-top: 22px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><span>⬡</span> DarkScan</div>
+    <div class="tag mono">live demo · runs in your browser</div>
+  </header>
+
+  <p class="lede">
+    Detects manipulative <strong>“dark pattern”</strong> UI — confirmshaming, fake urgency,
+    hidden costs, sneaky opt-outs and more — in any page text. It pairs fast keyword rules
+    with a <strong>trained classifier that generalises to wording it has never seen</strong>.
+    Everything below runs <strong>entirely client-side</strong>: the real ML model is exported
+    to JSON and the inference happens in JavaScript. No server, no data leaves your machine.
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" data-mode="paste">Paste text / HTML</button>
+        <button class="tab" data-mode="url">Scan a URL</button>
+      </div>
+
+      <div id="paste-pane">
+        <textarea id="input" placeholder="Paste some website copy, a checkout snippet, or raw HTML…"></textarea>
+        <div class="examples" id="examples"></div>
+        <div class="btn-row">
+          <button class="btn" id="run">Analyse</button>
+          <button class="btn secondary" id="clear">Clear</button>
+          <span class="status" id="status">Loading model…</span>
+        </div>
+      </div>
+
+      <div id="url-pane" style="display:none">
+        <input id="url-input" class="urlbox" type="text" placeholder="example.com  or  https://example.com/checkout" />
+        <div class="btn-row">
+          <button class="btn" id="scan-url">Fetch &amp; scan</button>
+          <span class="status" id="url-status"></span>
+        </div>
+        <p class="url-note">
+          Fetches the page server-side and scans its HTML. Heads-up: many sites block automated
+          fetching, and JavaScript-rendered pages may return little content — if a scan comes back
+          empty, view-source the page and paste the HTML in the other tab.
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Results</h2>
+      <div id="results"><div class="placeholder">Pick an example, paste text, or scan a URL.</div></div>
+    </div>
+  </div>
+
+  <details class="how">
+    <summary>How it works</summary>
+    <div class="how-body">
+      <p>
+        Dark patterns are deceptive interface choices that nudge you into decisions you
+        wouldn’t otherwise make. Pure keyword matching catches the obvious ones but misses
+        anything reworded — so DarkScan runs a <b>cascade</b> of detectors, cheapest first:
+      </p>
+      <div class="tiers">
+        <div class="tier"><b>1 · Heuristics</b><br>regex / keyword rules — instant, precise on known phrasings</div>
+        <div class="tier"><b>2 · Classifier</b><br>TF-IDF + logistic regression — generalises to unseen wording</div>
+        <div class="tier"><b>3 · Embeddings*</b><br>semantic match — catches different vocabulary entirely</div>
+        <div class="tier"><b>4 · LLM*</b><br>adjudicates the genuinely ambiguous cases</div>
+      </div>
+      <p>
+        This demo runs tiers 1 and 2 (tiers 3–4 are server-side options in the full project,
+        marked *). The classifier here is the <em>actual</em> trained scikit-learn model —
+        its word + character n-gram vocabulary, IDF weights and regression coefficients are
+        exported to <code>model.json</code> and the maths is re-implemented in
+        <code>detector.js</code>, verified to match the Python model to within 0.0001.
+      </p>
+      <p>
+        Character n-grams are what let it generalise: “pay full price like a chump” shares
+        sub-word features with the training example “pay full price”, so it’s flagged as
+        confirmshaming even though that exact sentence was never in the data.
+      </p>
+    </div>
+  </details>
+
+  <section class="hood" id="engineering">
+    <h2 class="hood-title">Under the hood — the full system</h2>
+    <p class="hood-intro">
+      The browser demo above is one slice. The actual project is a full-stack application:
+      a browser extension that scans live pages, a REST API that serves and persists results,
+      a React analytics dashboard, and the Python detection engine with its learning loop.
+      Here's how the pieces fit.
+    </p>
+
+    <div class="hood-grid">
+      <div class="hood-card">
+        <div class="hood-h">Browser extension</div>
+        <div class="hood-t">Manifest V3</div>
+        <p>One-click scan of the current tab. A content script extracts the page HTML and posts it to the API; a popup renders the findings in real time.</p>
+      </div>
+      <div class="hood-card">
+        <div class="hood-h">REST API</div>
+        <div class="hood-t">Flask · SQLite</div>
+        <p>Endpoints for scanning, history, stats, and the learning loop (<code>/feedback</code>, <code>/distilled</code>, <code>/retrain</code>). Scans persist to SQLite with a connection-per-request model.</p>
+      </div>
+      <div class="hood-card">
+        <div class="hood-h">Dashboard</div>
+        <div class="hood-t">React · Recharts</div>
+        <p>Scan history, severity trends, per-domain breakdowns, and a <b>Review &amp; Train</b> console where you confirm/reject detections and retrain the model.</p>
+      </div>
+      <div class="hood-card">
+        <div class="hood-h">Detection engine</div>
+        <div class="hood-t">Python · scikit-learn</div>
+        <p>The heuristic rules plus the tiered ML cascade. Segments a page into UI spans, classifies each, and merges results — heuristics for known patterns, ML for novel ones.</p>
+      </div>
+    </div>
+
+    <h3 class="hood-sub">Engineering decisions &amp; problems solved</h3>
+    <ul class="hood-list">
+      <li><b>A cost-aware cascade, not a single model.</b> Cheap tiers settle the easy cases; only genuinely ambiguous spans escalate to embeddings, then an LLM. A 200-span page costs a handful of LLM calls instead of 200.</li>
+      <li><b>A gated distillation loop.</b> When the expensive tiers confidently resolve something the cheap one couldn't, that verdict is captured to teach the cheap tier — but it's gated (high-confidence only), kept in a separate store, excluded from training by default, and always overridable by human feedback. Auto-training on a model's own guesses causes drift; the gating is the point.</li>
+      <li><b>A real false-positive, fixed.</b> The original "disguised ads" rule matched the substring <code>brand</code>, so Bootstrap's ubiquitous <code>navbar-brand</code> flagged a huge share of normal sites. Narrowed to word-boundary ad tokens; regression-tested.</li>
+      <li><b>Label validation on the feedback loop.</b> User corrections are checked against the taxonomy server-side, so a typo can't create a phantom class that poisons the next retrain.</li>
+      <li><b>Tested.</b> 19 backend tests cover the retriever, the cascade routing, the distillation guardrails, and the detection logic — all runnable with no API key.</li>
+    </ul>
+
+    <p class="hood-foot">
+      Want the detail? The <a id="repo2" href="#">repository</a> has the architecture write-up, the
+      test suite, and an honest "limitations" section.
+    </p>
+  </section>
+
+  <footer>
+    Built by Oisín McSherry · <a id="repo" href="#">source on GitHub</a> ·
+    grounded in the Gray et al. (2018) dark-pattern taxonomy.
+    <br>This is a research/educational tool; detections are heuristic and not legal advice.
+  </footer>
+</div>
+
+<script src="detector.js"></script>
+<script>
+const EXAMPLES = {
+  "Confirmshaming modal": `<div class="modal">
+  <h2>Wait — get 20% off your first order</h2>
+  <button>Yes, I want to save</button>
+  <a href="#">Nah, I'd rather pay full price like a chump</a>
+</div>`,
+  "Fake urgency": `<div class="banner">
+  <p>🔥 FLASH SALE — only 2 left in stock, hurry!</p>
+  <span class="timer" data-countdown>Ends in 09:58</span>
+  <p>17 people are viewing this right now</p>
+</div>`,
+  "Sneaky subscription": `<p>Start your free trial — no credit card required.</p>
+<p>After your 7 days, you'll be billed automatically at $29.99/month.</p>
+<p>To cancel, please call our support line during office hours.</p>`,
+  "Reworded (unseen)": `we quietly bill your card once the trial lapses
+continued usage implies acceptance of recurring charges
+membership perpetuates unless affirmatively halted`,
+  "Clean page": `<nav class="navbar"><a class="navbar-brand">My Shop</a></nav>
+<h1>Welcome back</h1>
+<button>Add to cart</button>
+<a href="/orders">View your orders</a>
+<p>Free shipping on orders over $50.</p>`,
+};
+
+const SEV_COLOR = { clean:"#00d68f", low:"#ffb347", medium:"#ff8c42", high:"#ff3b5c", critical:"#c0392b" };
+const SRC_COLOR = { heuristic:"#4e9eff", ml:"#a855f7" };
+
+const $ = (id) => document.getElementById(id);
+const elInput = $("input"), elResults = $("results"), elStatus = $("status"), elRun = $("run");
+
+// repo link — set to your GitHub once published
+$("repo").href = "https://github.com/oisinmcsherry/darkscan";
+const repo2 = $("repo2"); if (repo2) repo2.href = "https://github.com/oisinmcsherry/darkscan";
+
+// build example chips
+const chipBox = $("examples");
+Object.keys(EXAMPLES).forEach((name) => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.textContent = name;
+  b.onclick = () => { elInput.value = EXAMPLES[name]; render(analyse(elInput.value)); };
+  chipBox.appendChild(b);
+});
+
+function pill(level) {
+  const c = SEV_COLOR[level] || "#6b7a99";
+  return `<span class="pill" style="background:${c}22;color:${c};border:1px solid ${c}44">${level}</span>`;
+}
+
+function render(result) {
+  const { riskLevel, score, detections } = result;
+  const c = SEV_COLOR[riskLevel] || "#6b7a99";
+  let html = `<div class="risk">${pill(riskLevel)}
+    <div class="scoretrack"><div class="scorefill" style="width:${score}%;background:${c}"></div></div>
+    <span class="mono" style="font-size:12px;color:var(--muted)">${score}/100</span></div>`;
+
+  if (!detections.length) {
+    html += `<div class="empty">✓ No dark patterns detected.</div>`;
+    elResults.innerHTML = html; return;
+  }
+
+  for (const d of detections) {
+    const sc = SEV_COLOR[d.severity] || "#ff3b5c";
+    const srcC = SRC_COLOR[d.source];
+    const conf = d.confidence != null ? ` ${Math.round(d.confidence*100)}%` : "";
+    html += `<div class="det" style="border-left-color:${sc}">
+      <div class="det-top">
+        <div>
+          <div class="det-name">${d.category}${d.source==="ml"?' <span style="color:var(--dim);font-weight:400">(ML-detected)</span>':''}</div>
+        </div>
+        <span class="badge" style="background:${srcC}22;color:${srcC}">${d.source}${conf}</span>
+      </div>
+      ${d.evidence.map((e)=>`<div class="ev">${escapeHtml(e)}</div>`).join("")}
+      <div class="rec">→ ${d.recommendation}</div>
+    </div>`;
+  }
+  elResults.innerHTML = html;
+}
+
+function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+
+elRun.onclick = () => { if (elInput.value.trim()) render(analyse(elInput.value)); };
+$("clear").onclick = () => { elInput.value = ""; elResults.innerHTML = `<div class="placeholder">Pick an example, paste text, or scan a URL.</div>`; };
+elInput.addEventListener("keydown", (e) => { if ((e.metaKey||e.ctrlKey) && e.key === "Enter") elRun.click(); });
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+const pastePane = $("paste-pane"), urlPane = $("url-pane");
+document.querySelectorAll(".tab").forEach((tab) => {
+  tab.onclick = () => {
+    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    const url = tab.dataset.mode === "url";
+    urlPane.style.display = url ? "" : "none";
+    pastePane.style.display = url ? "none" : "";
+  };
+});
+
+// ── URL scanning ──────────────────────────────────────────────────────────────
+// The browser can't fetch arbitrary cross-origin HTML directly (CORS), so we try,
+// in order: a same-origin serverless function (best, if deployed) → a public CORS
+// proxy (works on plain static hosting, best-effort) → a clear failure message.
+const FETCHERS = [
+  (u) => `./api/scan-url?url=${encodeURIComponent(u)}`,
+  (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+];
+
+function normaliseUrl(raw) {
+  raw = raw.trim();
+  if (!raw) return "";
+  if (!/^https?:\/\//i.test(raw)) raw = "https://" + raw;
+  return raw;
+}
+
+async function fetchPage(url) {
+  let lastErr;
+  for (const make of FETCHERS) {
+    try {
+      const resp = await fetch(make(url), { redirect: "follow" });
+      if (!resp.ok) { lastErr = new Error("HTTP " + resp.status); continue; }
+      const html = await resp.text();
+      if (html && html.length > 50) return html;
+      lastErr = new Error("empty response");
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("could not fetch");
+}
+
+const urlInput = $("url-input"), urlStatus = $("url-status"), scanBtn = $("scan-url");
+
+async function scanUrl() {
+  const url = normaliseUrl(urlInput.value);
+  if (!url) return;
+  scanBtn.disabled = true;
+  urlStatus.style.color = "var(--dim)";
+  urlStatus.textContent = "Fetching page…";
+  elResults.innerHTML = `<div class="placeholder">Fetching ${escapeHtml(url)}…</div>`;
+  try {
+    const html = await fetchPage(url);
+    urlStatus.textContent = "Scanning…";
+    const result = analyse(html);
+    render(result);
+    urlStatus.textContent = `Scanned ${result.detections.length} pattern${result.detections.length === 1 ? "" : "s"} found.`;
+  } catch (e) {
+    urlStatus.style.color = "var(--red)";
+    urlStatus.textContent = "Couldn't fetch that page.";
+    elResults.innerHTML = `<div class="placeholder" style="text-align:left;line-height:1.7">
+      <b style="color:var(--text)">Couldn't fetch that URL.</b><br>
+      Most likely the site blocks automated requests, or no fetch proxy is available on this host.
+      The reliable way: open the page, <span class="mono">View Source</span> (Ctrl/Cmd+U), copy the
+      HTML, and paste it in the <b>Paste text / HTML</b> tab.
+    </div>`;
+  } finally {
+    scanBtn.disabled = false;
+  }
+}
+scanBtn.onclick = scanUrl;
+urlInput.addEventListener("keydown", (e) => { if (e.key === "Enter") scanUrl(); });
+
+loadModel().then(() => {
+  elStatus.textContent = "Model loaded — ready.";
+  elRun.disabled = false;
+}).catch(() => { elStatus.textContent = "Could not load model.json"; });
+elRun.disabled = true;
+</script>
+</body>
+</html>

@@ -3,15 +3,23 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Nexus — AI codebase Q&A (walkthrough)</title>
+<title>Nexus, AI codebase Q&A (walkthrough)</title>
 <meta name="description" content="An AI agent that answers questions about any GitHub codebase by reading the code. Interactive walkthrough." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2312161e'/%3E%3Cpath d='M32 10 53 22 53 42 32 54 11 42 11 22Z' fill='none' stroke='%23ff3b5c' stroke-width='5'/%3E%3C/svg%3E" />
+<meta name="theme-color" content="#0a0c10" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Nexus, AI codebase Q&A" />
+<meta property="og:description" content="Ask questions about any GitHub codebase in plain English; an AI agent reads the code to answer. Interactive walkthrough." />
+<meta property="og:image" content="../og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="../og-image.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
     --bg:#0a0c10; --panel:#12161e; --panel2:#0d1017; --line:#1e2430;
-    --text:#e8ecf4; --muted:#8899aa; --dim:#6b7a99;
+    --text:#e8ecf4; --muted:#8899aa; --dim:#8595ad;
     --red:#ff3b5c; --green:#00d68f; --blue:#4e9eff; --purple:#a855f7; --amber:#ffb347;
   }
   * { box-sizing:border-box; }
@@ -29,6 +37,12 @@
 
   .repo-bar { display:flex; align-items:center; gap:10px; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); margin-bottom:18px; }
   .repo-bar .ok { color:var(--green); }
+
+  .shots { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:8px 0 28px; }
+  @media (max-width:760px){ .shots { grid-template-columns:1fr; } }
+  .shots figure { margin:0; }
+  .shots img { width:100%; height:auto; border:1px solid var(--line); border-radius:10px; display:block; }
+  .shots figcaption { font-size:12px; color:var(--dim); margin-top:8px; line-height:1.5; }
 
   .chat { background:var(--panel); border:1px solid var(--line); border-radius:14px; min-height:380px; padding:20px; display:flex; flex-direction:column; gap:16px; }
   .msg { display:flex; gap:12px; }
@@ -80,6 +94,27 @@
   .hood-list b { color:var(--text); font-weight:600; }
   .hood-list code { font-family:'JetBrains Mono',monospace; font-size:11.5px; background:#1a1f2a; padding:1px 4px; border-radius:3px; color:var(--amber); }
   .hood-foot { font-size:13px; color:var(--muted); margin-top:22px; }
+
+  .flow { display:flex; flex-direction:column; align-items:center; gap:0; margin:6px 0 28px; }
+  .flow-box { background:var(--panel2); border:1px solid var(--line); border-radius:9px; padding:11px 18px; text-align:center; min-width:200px; }
+  .flow-box .fb-main { font-size:13.5px; font-weight:600; color:var(--text); }
+  .flow-box .fb-sub { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--dim); margin-top:2px; }
+  .flow-box.accent { border-color:#a855f744; box-shadow:0 0 0 1px #a855f722; }
+  .flow-arr { color:var(--dim); font-size:15px; line-height:1.1; padding:5px 0; }
+  .flow-branch { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:4px; }
+  .flow-leaf { background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:9px 13px; font-size:12px; color:var(--text); }
+  .flow-leaf span { font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--dim); display:block; margin-top:2px; }
+
+  .stack-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; }
+  .stack-col h4 { font-size:11px; font-family:'JetBrains Mono',monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); margin:0 0 9px; }
+  .stack-col ul { list-style:none; padding:0; margin:0; display:grid; gap:5px; }
+  .stack-col li { font-size:13px; color:var(--text); }
+  .stack-col li span { color:var(--dim); font-size:11.5px; }
+
+  .sub-block { margin-top:30px; }
+  .sub-block > h3 { font-size:14px; font-weight:700; margin:0 0 12px; }
+  .twocol { display:grid; grid-template-columns:1fr 1fr; gap:14px 26px; }
+  @media (max-width:680px){ .twocol { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -88,16 +123,27 @@
 
   <header>
     <div class="logo">Nexus</div>
-    <div class="note">● recorded sample session — not a live backend</div>
+    <div class="note">● recorded sample session, not a live backend</div>
   </header>
 
   <p class="lede">
-    Nexus answers questions about a codebase by <b>acting like an engineer reading it</b> — searching,
-    opening files, following references — using a Claude agent with tool-calling over a BM25-indexed repo.
+    Nexus answers questions about a codebase by <b>acting like an engineer reading it</b>, searching,
+    opening files, following references, using a Claude agent with tool-calling over a BM25-indexed repo.
     Below is a real session captured against the <b>FastAPI</b> repository. Click a question to watch the
-    agent work. <b>Why not live?</b> Each query calls the Anthropic API, which costs money per request — so
+    agent work. <b>Why not live?</b> Each query calls the Anthropic API, which costs money per request, so
     a public always-on instance isn't safe to host. Scroll down to run the real thing yourself in a minute.
   </p>
+
+  <div class="shots">
+    <figure>
+      <img src="setup.png" alt="Nexus setup screen, paste a public GitHub URL, no cloning or local setup" loading="lazy" />
+      <figcaption>The setup screen, paste any public GitHub URL and it indexes the repo.</figcaption>
+    </figure>
+    <figure>
+      <img src="chat.png" alt="Nexus answering an architecture question over the Flask codebase, showing tool calls and a streamed answer with citations" loading="lazy" />
+      <figcaption>Answering a question over the Flask codebase, the agent searches and reads files, then streams an answer with source citations.</figcaption>
+    </figure>
+  </div>
 
   <div class="repo-bar">
     <span class="ok">●</span> indexed: <b style="color:var(--text)">tiangolo/fastapi</b>
@@ -109,7 +155,7 @@
       <div class="avatar bot">N</div>
       <div class="bubble">
         <div class="who">Nexus</div>
-        <div class="body">Repository indexed. Ask me anything about how this codebase works — pick a question below to begin.</div>
+        <div class="body">Repository indexed. Ask me anything about how this codebase works, pick a question below to begin.</div>
       </div>
     </div>
   </div>
@@ -122,17 +168,17 @@
       <h2>How it works</h2>
       <p>When you ask a question, the agent runs a <b style="color:var(--text)">tool-use loop</b>:</p>
       <ul style="padding-left:18px; margin:10px 0">
-        <li><code>search_codebase</code> — BM25 over indexed chunks</li>
-        <li><code>read_file</code> — pull a full file</li>
-        <li><code>list_files</code> — explore structure</li>
-        <li><code>generate_docs</code> — summarise a module</li>
+        <li><code>search_codebase</code>, BM25 over indexed chunks</li>
+        <li><code>read_file</code>, pull a full file</li>
+        <li><code>list_files</code>, explore structure</li>
+        <li><code>generate_docs</code>, summarise a module</li>
       </ul>
-      <p>It calls tools, reads results, and decides what to do next — up to a safety cap on rounds — then streams a final answer over SSE with the source files it consulted.</p>
+      <p>It calls tools, reads results, and decides what to do next, up to a safety cap on rounds, then streams a final answer over SSE with the source files it consulted.</p>
     </div>
 
     <div class="card">
       <h2>Run the real thing</h2>
-      <p>It's Dockerised — clone, add an Anthropic key, and bring it up:</p>
+      <p>It's Dockerised, clone, add an Anthropic key, and bring it up:</p>
       <div class="deploy-cmd">
         git clone .../nexus<br>
         cd nexus<br>
@@ -140,7 +186,7 @@
         docker compose up
       </div>
       <p style="margin-top:12px">Then open <code>localhost:3002</code>, paste any public GitHub URL, and ask away.
-      <a href="https://github.com/YOUR-USERNAME/nexus" target="_blank" rel="noopener">Full instructions &amp; source →</a></p>
+      <a href="https://github.com/Oisin33/Nexus" target="_blank" rel="noopener">Full instructions &amp; source →</a></p>
     </div>
   </div>
 
@@ -148,45 +194,137 @@
     <h2 class="hood-title">Under the hood</h2>
     <p class="hood-intro">
       Nexus is a small distributed system, not a single script. The interesting engineering is in
-      the retrieval, the agent loop, and the streaming — and in the bugs that only show up when you
+      the retrieval, the agent loop, and the streaming, and in the bugs that only show up when you
       actually run it against real repos.
     </p>
 
+    <!-- 1. Request flow diagram -->
+    <h3 class="hood-sub">Request flow</h3>
+    <div class="flow">
+      <div class="flow-box"><div class="fb-main">React Frontend</div><div class="fb-sub">TypeScript · streams tokens over SSE</div></div>
+      <div class="flow-arr">▼</div>
+      <div class="flow-box accent"><div class="fb-main">FastAPI Backend</div><div class="fb-sub">async · agent tool-use loop</div></div>
+      <div class="flow-arr">▼</div>
+      <div class="flow-branch">
+        <div class="flow-leaf">Repo Parser<span>fetch + chunk files</span></div>
+        <div class="flow-leaf">BM25 Index<span>in-memory retrieval</span></div>
+        <div class="flow-leaf">Claude API<span>tool-calling agent</span></div>
+        <div class="flow-leaf">SSE Streaming<span>live token output</span></div>
+      </div>
+    </div>
+    <p class="hood-intro" style="font-size:12.5px;margin-top:-12px">
+      A question drives a tool-use loop: the agent searches the BM25 index, reads files, and decides
+      its next move, up to a safety cap on rounds, then streams the answer back over SSE with the
+      source files it consulted.
+    </p>
+
+    <!-- 2. Architecture -->
+    <h3 class="hood-sub">Architecture</h3>
     <div class="hood-grid">
-      <div class="hood-card">
-        <div class="hood-h">Backend</div>
-        <div class="hood-t">FastAPI · async</div>
-        <p>Indexes a repo by fetching files concurrently (<code>asyncio.gather</code> with a semaphore), chunks them, and builds a BM25 index. Streams responses over Server-Sent Events.</p>
-      </div>
-      <div class="hood-card">
-        <div class="hood-h">Agent loop</div>
-        <div class="hood-t">Claude · tool-use</div>
-        <p>A multi-round tool-calling loop with four tools and a safety cap on rounds. Tracks which files it consulted and returns them as sources.</p>
-      </div>
-      <div class="hood-card">
-        <div class="hood-h">Front end</div>
-        <div class="hood-t">TypeScript · React</div>
-        <p>Live token streaming, a file tree that highlights consulted files, and a syntax-highlighted viewer — strict <code>tsc</code> build, no <code>any</code> escapes.</p>
-      </div>
-      <div class="hood-card">
-        <div class="hood-h">Infra</div>
-        <div class="hood-t">Docker · nginx</div>
-        <p>Compose stack with an nginx reverse proxy tuned for SSE (long read timeouts, buffering off), the backend on an internal network, and a CI pipeline.</p>
+      <div class="hood-card"><div class="hood-h">Backend</div><div class="hood-t">FastAPI · async</div><p>Fetches repo files concurrently (<code>asyncio.gather</code> + semaphore), chunks them, builds a BM25 index, and streams over SSE.</p></div>
+      <div class="hood-card"><div class="hood-h">Agent loop</div><div class="hood-t">Claude · tool-use</div><p>Multi-round tool-calling with four tools and a cap on rounds. Tracks consulted files and returns them as sources.</p></div>
+      <div class="hood-card"><div class="hood-h">Front end</div><div class="hood-t">TypeScript · React</div><p>Live token streaming, a file tree that highlights consulted files, a syntax-highlighted viewer, strict <code>tsc</code>, no <code>any</code>.</p></div>
+      <div class="hood-card"><div class="hood-h">Infra</div><div class="hood-t">Docker · nginx</div><p>Compose stack with an nginx proxy tuned for SSE, the backend on an internal network, and a CI pipeline.</p></div>
+    </div>
+
+    <!-- 3. Tech stack -->
+    <div class="sub-block">
+      <h3>Tech stack</h3>
+      <div class="stack-grid">
+        <div class="stack-col"><h4>Backend</h4><ul><li>FastAPI</li><li>Python <span>async</span></li><li>Claude API <span>tool-use</span></li><li>httpx <span>GitHub fetch</span></li></ul></div>
+        <div class="stack-col"><h4>Frontend</h4><ul><li>React</li><li>TypeScript <span>strict</span></li><li>Vite</li></ul></div>
+        <div class="stack-col"><h4>Search</h4><ul><li>BM25 <span>rank-bm25</span></li><li>Custom chunking pipeline</li></ul></div>
+        <div class="stack-col"><h4>Infra</h4><ul><li>Docker Compose</li><li>nginx <span>reverse proxy</span></li><li>GitHub Actions <span>CI</span></li></ul></div>
       </div>
     </div>
 
-    <h3 class="hood-sub">Bugs found &amp; fixed (the real work)</h3>
-    <ul class="hood-list">
-      <li><b>BM25 returned nothing for common queries.</b> The scorer produces <i>negative</i> scores when a term appears in many documents, and the code cut results off at zero — so a query like "how does auth work" silently returned no results. Fixed by gating on token overlap instead of score sign; regression-tested.</li>
-      <li><b>The per-file cap fought the result limit.</b> Capping at N <i>before</i> applying a per-file diversity limit meant one large file could starve the results. Reordered so other files fill the gaps.</li>
-      <li><b>Fake streaming → real streaming.</b> An early version chunked a finished response to look live; replaced with genuine token streaming from the model over SSE, and fixed an nginx timeout that silently killed long responses mid-answer.</li>
-      <li><b>Container networking.</b> The frontend hardcoded <code>localhost:8000</code>, which breaks inside Docker; switched to a relative path proxied by nginx so dev and container both work.</li>
-      <li><b>Tested.</b> The agent loop is covered by tests using a mocked Anthropic client — tool dispatch, the round cap, and source tracking all run in CI with no API key.</li>
-    </ul>
+    <!-- 4. Design decisions -->
+    <div class="sub-block">
+      <h3>Design decisions</h3>
+      <div class="twocol">
+        <ul class="hood-list">
+          <li><b>Why BM25 instead of embeddings?</b> No embedding-generation cost or model download, instant indexing, and strong keyword recall, which matters for code, where identifiers and exact symbol names carry most of the signal. Simpler to deploy, and good enough that the agent can compensate with follow-up searches.</li>
+        </ul>
+        <ul class="hood-list">
+          <li><b>An agent loop, not one-shot RAG.</b> Letting the model search, read, and decide its next step, rather than stuffing a fixed set of chunks into one prompt, means it can follow references across files the way a person would, which is what codebase questions actually require.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 5. Challenges & bugs -->
+    <div class="sub-block">
+      <h3>Engineering challenges &amp; bugs fixed</h3>
+      <ul class="hood-list">
+        <li><b>BM25 returned nothing for common queries.</b> The scorer produces <i>negative</i> scores when a term appears in many documents, and the code cut results off at zero, so a query like "how does auth work" silently returned no results. Root cause was using score sign as a relevance gate. Fixed by gating on token overlap instead, and added a regression test.</li>
+        <li><b>The per-file cap fought the result limit.</b> Capping results <i>before</i> applying a per-file diversity limit let one large file starve the output. Reordered so other files fill the gaps.</li>
+        <li><b>Fake streaming → real streaming.</b> An early version chunked a finished response to look live; replaced with genuine token streaming over SSE, and fixed an nginx read-timeout that silently killed long answers mid-stream.</li>
+        <li><b>Container networking.</b> The frontend hardcoded <code>localhost:8000</code>, which breaks inside Docker; switched to a relative path proxied by nginx so dev and container both work.</li>
+      </ul>
+    </div>
+
+    <!-- 6. Testing -->
+    <div class="sub-block">
+      <h3>Testing</h3>
+      <ul class="hood-list">
+        <li><b>11 tests</b>, all runnable in CI with no API key.</li>
+        <li>Integration tests for the <b>agent tool-calling loop</b> using a mocked Anthropic client, verifying tool dispatch, the round-cap safety limit, and source tracking.</li>
+        <li>A <b>regression suite for the retrieval bugs</b> above, so the BM25 failures can't silently return.</li>
+      </ul>
+    </div>
+
+    <!-- 7. Reliability -->
+    <div class="sub-block">
+      <h3>Reliability &amp; safety</h3>
+      <ul class="hood-list">
+        <li><b>A tool-call round cap</b> prevents the agent from looping forever; it always terminates and returns what it has.</li>
+        <li><b>Graceful degradation</b>, a missing API key degrades cleanly rather than crashing on import, so the app and its tests still run.</li>
+        <li><b>Concurrent fetching with a semaphore</b> bounds load on the GitHub API instead of firing unbounded requests.</li>
+      </ul>
+    </div>
+
+    <!-- 8. Deployment -->
+    <div class="sub-block">
+      <h3>Deployment</h3>
+      <ul class="hood-list">
+        <li><b>Dockerised services</b> via Compose, frontend and backend build and run with one command.</li>
+        <li><b>nginx reverse proxy</b> in front, tuned for SSE (long read timeouts, buffering off) so streaming responses aren't cut short.</li>
+        <li><b>Environment-based configuration</b>, API keys and tokens injected via env vars, never baked in. CI validates the build on every change.</li>
+      </ul>
+    </div>
+
+    <!-- 9. Scaling (future) -->
+    <div class="sub-block">
+      <h3>Scaling considerations <span style="color:var(--dim);font-weight:400;font-size:12px">,  future work, not yet built</span></h3>
+      <ul class="hood-list">
+        <li>Move the BM25 index out of process into a dedicated search service so indexing and querying scale independently.</li>
+        <li>Background indexing workers, so large repos index without blocking requests.</li>
+        <li>Response caching and persisting the index to disk so restarts don't re-index from scratch.</li>
+      </ul>
+    </div>
+
+    <!-- 10. Lessons -->
+    <div class="sub-block">
+      <h3>What I'd do differently</h3>
+      <ul class="hood-list">
+        <li>Separate the indexing and querying paths earlier, they have different lifecycles and bundling them complicated the request flow.</li>
+        <li>Persist the index from the start, rather than rebuilding it in memory on every restart.</li>
+        <li>Add telemetry around tool calls early, to see where the agent spends its rounds instead of inferring it from logs.</li>
+      </ul>
+    </div>
+
+    <!-- honest limitations -->
+    <div class="sub-block">
+      <h3>Honest limitations</h3>
+      <ul class="hood-list">
+        <li>The index is <b>in-memory and rebuilt per session</b>, fine for interactive use, but a restart re-indexes, and it's tested on normal-sized repositories rather than huge monorepos.</li>
+        <li>Retrieval is <b>BM25 (keyword), not semantic</b>, great for code identifiers, but a question worded with no overlapping terms can miss; the agent compensates by reformulating searches.</li>
+        <li>Each query makes <b>paid API calls</b>, which is exactly why this page is a walkthrough rather than a public live instance.</li>
+      </ul>
+    </div>
 
     <p class="hood-foot">
       The full audit trail, with diffs and test output, is in the
-      <a href="https://github.com/YOUR-USERNAME/nexus" target="_blank" rel="noopener">repository</a>.
+      <a href="https://github.com/Oisin33/Nexus" target="_blank" rel="noopener">repository</a>.
     </p>
   </section>
 
@@ -210,7 +348,7 @@ const SESSION = [
 <pre>OAuth2PasswordBearer(tokenUrl="token")  # extracts the Bearer token
 SecurityScopes                          # carries required scopes</pre>
 
-You declare a security scheme as a dependency, and FastAPI resolves it per-request — pulling the token from the <code>Authorization</code> header, validating scopes, and injecting the result into your path function. Because it's a dependency, it composes: a route can require several scopes, and the framework wires them into the OpenAPI schema automatically. The actual token verification (decoding a JWT, checking a DB) is left to your callback — the framework handles extraction and scope enforcement.`,
+You declare a security scheme as a dependency, and FastAPI resolves it per-request, pulling the token from the <code>Authorization</code> header, validating scopes, and injecting the result into your path function. Because it's a dependency, it composes: a route can require several scopes, and the framework wires them into the OpenAPI schema automatically. The actual token verification (decoding a JWT, checking a DB) is left to your callback, the framework handles extraction and scope enforcement.`,
     sources: ["fastapi/security/oauth2.py", "fastapi/security/base.py"],
   },
   {
@@ -219,9 +357,9 @@ You declare a security scheme as a dependency, and FastAPI resolves it per-reque
       { tool: "search_codebase", arg: "request body validation pydantic" },
       { tool: "read_file", arg: "fastapi/dependencies/utils.py" },
     ],
-    answer: `Validation happens automatically through <b>Pydantic</b>, driven by your type hints. When a request arrives, FastAPI's dependency resolver (<code>fastapi/dependencies/utils.py</code>) inspects each parameter's annotation and decides where it comes from — path, query, header, or body — then hands the raw data to the matching Pydantic model.
+    answer: `Validation happens automatically through <b>Pydantic</b>, driven by your type hints. When a request arrives, FastAPI's dependency resolver (<code>fastapi/dependencies/utils.py</code>) inspects each parameter's annotation and decides where it comes from, path, query, header, or body, then hands the raw data to the matching Pydantic model.
 
-If the data doesn't fit the model, Pydantic raises a <code>ValidationError</code>, which FastAPI catches and converts into a <code>422 Unprocessable Entity</code> with a structured list of exactly which fields failed and why. You never write validation code by hand — declaring the type <i>is</i> the validation.`,
+If the data doesn't fit the model, Pydantic raises a <code>ValidationError</code>, which FastAPI catches and converts into a <code>422 Unprocessable Entity</code> with a structured list of exactly which fields failed and why. You never write validation code by hand, declaring the type <i>is</i> the validation.`,
     sources: ["fastapi/dependencies/utils.py", "fastapi/exceptions.py"],
   },
   {
@@ -235,7 +373,7 @@ If the data doesn't fit the model, Pydantic raises a <code>ValidationError</code
 <pre>HTTPException        → JSON {detail: ...} with your status code
 RequestValidationError → 422 with the per-field error list</pre>
 
-Anything you <code>raise HTTPException(404, "Not found")</code> is turned into a clean JSON response. For validation failures the handler serialises Pydantic's error tree so the client sees precisely which inputs were wrong. You can override either handler, or register your own for custom exception types with <code>@app.exception_handler(...)</code> — the framework keeps a registry and dispatches by exception class.`,
+Anything you <code>raise HTTPException(404, "Not found")</code> is turned into a clean JSON response. For validation failures the handler serialises Pydantic's error tree so the client sees precisely which inputs were wrong. You can override either handler, or register your own for custom exception types with <code>@app.exception_handler(...)</code>, the framework keeps a registry and dispatches by exception class.`,
     sources: ["fastapi/exception_handlers.py", "fastapi/applications.py"],
   },
 ];

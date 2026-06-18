@@ -3,15 +3,23 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>DarkScan — dark pattern detector (live demo)</title>
+<title>DarkScan, dark pattern detector (live demo)</title>
 <meta name="description" content="Detect manipulative 'dark pattern' UI in any web page text. Runs a trained ML cascade entirely in your browser." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2312161e'/%3E%3Cpath d='M32 10 53 22 53 42 32 54 11 42 11 22Z' fill='none' stroke='%23ff3b5c' stroke-width='5'/%3E%3C/svg%3E" />
+<meta name="theme-color" content="#0a0c10" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="DarkScan, dark pattern detector (live demo)" />
+<meta property="og:description" content="Paste any page text or HTML and watch a trained ML model flag manipulative UI patterns, running entirely in your browser." />
+<meta property="og:image" content="../og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="../og-image.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
     --bg: #0a0c10; --panel: #12161e; --panel2: #0d1017; --line: #1e2430;
-    --text: #e8ecf4; --muted: #8899aa; --dim: #6b7a99;
+    --text: #e8ecf4; --muted: #8899aa; --dim: #8595ad;
     --red: #ff3b5c; --orange: #ff8c42; --amber: #ffb347;
     --green: #00d68f; --blue: #4e9eff; --purple: #a855f7;
   }
@@ -115,6 +123,27 @@
   .hood-list b { color: var(--text); font-weight: 600; }
   .hood-list code { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; background: #1a1f2a; padding: 1px 4px; border-radius: 3px; color: var(--amber); }
   .hood-foot { font-size: 13px; color: var(--muted); margin-top: 22px; }
+
+  /* flow diagram */
+  .flow { display:flex; flex-direction:column; align-items:center; gap:0; margin:6px 0 28px; }
+  .flow-box { background:var(--panel2); border:1px solid var(--line); border-radius:9px; padding:11px 18px; text-align:center; min-width:200px; }
+  .flow-box .fb-main { font-size:13.5px; font-weight:600; color:var(--text); }
+  .flow-box .fb-sub { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--dim); margin-top:2px; }
+  .flow-box.accent { border-color:#a855f744; box-shadow:0 0 0 1px #a855f722; }
+  .flow-arr { color:var(--dim); font-size:15px; line-height:1.1; padding:5px 0; }
+  .flow-tag { font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--dim); padding:2px 0; }
+
+  /* tech stack by layer */
+  .stack-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; }
+  .stack-col h4 { font-size:11px; font-family:'JetBrains Mono',monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); margin:0 0 9px; }
+  .stack-col ul { list-style:none; padding:0; margin:0; display:grid; gap:5px; }
+  .stack-col li { font-size:13px; color:var(--text); }
+  .stack-col li span { color:var(--dim); font-size:11.5px; }
+
+  .sub-block { margin-top:30px; }
+  .sub-block > h3 { font-size:14px; font-weight:700; margin:0 0 12px; }
+  .twocol { display:grid; grid-template-columns:1fr 1fr; gap:14px 26px; }
+  @media (max-width:680px){ .twocol { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -125,8 +154,8 @@
   </header>
 
   <p class="lede">
-    Detects manipulative <strong>“dark pattern”</strong> UI — confirmshaming, fake urgency,
-    hidden costs, sneaky opt-outs and more — in any page text. It pairs fast keyword rules
+    Detects manipulative <strong>“dark pattern”</strong> UI, confirmshaming, fake urgency,
+    hidden costs, sneaky opt-outs and more, in any page text. It pairs fast keyword rules
     with a <strong>trained classifier that generalises to wording it has never seen</strong>.
     Everything below runs <strong>entirely client-side</strong>: the real ML model is exported
     to JSON and the inference happens in JavaScript. No server, no data leaves your machine.
@@ -157,7 +186,7 @@
         </div>
         <p class="url-note">
           Fetches the page server-side and scans its HTML. Heads-up: many sites block automated
-          fetching, and JavaScript-rendered pages may return little content — if a scan comes back
+          fetching, and JavaScript-rendered pages may return little content, if a scan comes back
           empty, view-source the page and paste the HTML in the other tab.
         </p>
       </div>
@@ -175,18 +204,17 @@
       <p>
         Dark patterns are deceptive interface choices that nudge you into decisions you
         wouldn’t otherwise make. Pure keyword matching catches the obvious ones but misses
-        anything reworded — so DarkScan runs a <b>cascade</b> of detectors, cheapest first:
+        anything reworded, so DarkScan runs a <b>cascade</b> of detectors, cheapest first:
       </p>
       <div class="tiers">
-        <div class="tier"><b>1 · Heuristics</b><br>regex / keyword rules — instant, precise on known phrasings</div>
-        <div class="tier"><b>2 · Classifier</b><br>TF-IDF + logistic regression — generalises to unseen wording</div>
-        <div class="tier"><b>3 · Embeddings*</b><br>semantic match — catches different vocabulary entirely</div>
+        <div class="tier"><b>1 · Heuristics</b><br>regex / keyword rules, instant, precise on known phrasings</div>
+        <div class="tier"><b>2 · Classifier</b><br>TF-IDF + logistic regression, generalises to unseen wording</div>
+        <div class="tier"><b>3 · Embeddings*</b><br>semantic match, catches different vocabulary entirely</div>
         <div class="tier"><b>4 · LLM*</b><br>adjudicates the genuinely ambiguous cases</div>
       </div>
       <p>
-        This demo runs tiers 1 and 2 (tiers 3–4 are server-side options in the full project,
-        marked *). The classifier here is the <em>actual</em> trained scikit-learn model —
-        its word + character n-gram vocabulary, IDF weights and regression coefficients are
+        This demo runs tiers 1 and 2 (tiers 3-4 are server-side options in the full project,
+        marked *). The classifier here is the <em>actual</em> trained scikit-learn model, its word + character n-gram vocabulary, IDF weights and regression coefficients are
         exported to <code>model.json</code> and the maths is re-implemented in
         <code>detector.js</code>, verified to match the Python model to within 0.0001.
       </p>
@@ -199,49 +227,140 @@
   </details>
 
   <section class="hood" id="engineering">
-    <h2 class="hood-title">Under the hood — the full system</h2>
+    <h2 class="hood-title">Under the hood, the full system</h2>
     <p class="hood-intro">
       The browser demo above is one slice. The actual project is a full-stack application:
       a browser extension that scans live pages, a REST API that serves and persists results,
       a React analytics dashboard, and the Python detection engine with its learning loop.
-      Here's how the pieces fit.
     </p>
 
+    <!-- 1. Detection cascade diagram -->
+    <h3 class="hood-sub">Detection cascade</h3>
+    <div class="flow">
+      <div class="flow-box"><div class="fb-main">Browser Extension</div><div class="fb-sub">extracts page HTML</div></div>
+      <div class="flow-arr">▼</div>
+      <div class="flow-box"><div class="fb-main">Heuristics Layer</div><div class="fb-sub">regex / keyword rules · free, instant</div></div>
+      <div class="flow-tag">uncertain ↓ escalate</div>
+      <div class="flow-box"><div class="fb-main">TF-IDF Classifier</div><div class="fb-sub">word + char n-grams · free, local</div></div>
+      <div class="flow-tag">uncertain ↓ escalate</div>
+      <div class="flow-box"><div class="fb-main">Embedding Similarity</div><div class="fb-sub">semantic match · free, local*</div></div>
+      <div class="flow-tag">uncertain ↓ escalate</div>
+      <div class="flow-box accent"><div class="fb-main">LLM Escalation</div><div class="fb-sub">adjudicates ambiguous spans · paid*</div></div>
+    </div>
+    <p class="hood-intro" style="font-size:12.5px;margin-top:-12px">
+      Each tier only sees what the one above couldn't confidently settle. The cheap tiers handle the
+      common cases, so most pages never reach the LLM at all, that's the cost-control argument for a
+      cascade over a single big model. (*optional server-side tiers.)
+    </p>
+
+    <!-- 2. System architecture -->
+    <h3 class="hood-sub">System architecture</h3>
     <div class="hood-grid">
-      <div class="hood-card">
-        <div class="hood-h">Browser extension</div>
-        <div class="hood-t">Manifest V3</div>
-        <p>One-click scan of the current tab. A content script extracts the page HTML and posts it to the API; a popup renders the findings in real time.</p>
-      </div>
-      <div class="hood-card">
-        <div class="hood-h">REST API</div>
-        <div class="hood-t">Flask · SQLite</div>
-        <p>Endpoints for scanning, history, stats, and the learning loop (<code>/feedback</code>, <code>/distilled</code>, <code>/retrain</code>). Scans persist to SQLite with a connection-per-request model.</p>
-      </div>
-      <div class="hood-card">
-        <div class="hood-h">Dashboard</div>
-        <div class="hood-t">React · Recharts</div>
-        <p>Scan history, severity trends, per-domain breakdowns, and a <b>Review &amp; Train</b> console where you confirm/reject detections and retrain the model.</p>
-      </div>
-      <div class="hood-card">
-        <div class="hood-h">Detection engine</div>
-        <div class="hood-t">Python · scikit-learn</div>
-        <p>The heuristic rules plus the tiered ML cascade. Segments a page into UI spans, classifies each, and merges results — heuristics for known patterns, ML for novel ones.</p>
+      <div class="hood-card"><div class="hood-h">Browser extension</div><div class="hood-t">Manifest V3</div><p>One-click scan of the current tab. A content script extracts page HTML and posts it to the API; a popup renders findings in real time.</p></div>
+      <div class="hood-card"><div class="hood-h">REST API</div><div class="hood-t">Flask · SQLite</div><p>Endpoints for scanning, history, stats, and the learning loop (<code>/feedback</code>, <code>/distilled</code>, <code>/retrain</code>). Connection-per-request SQLite.</p></div>
+      <div class="hood-card"><div class="hood-h">Dashboard</div><div class="hood-t">React · Recharts</div><p>Scan history, severity trends, per-domain breakdowns, and a <b>Review &amp; Train</b> console to confirm/reject detections and retrain.</p></div>
+      <div class="hood-card"><div class="hood-h">Detection engine</div><div class="hood-t">Python · scikit-learn</div><p>Heuristic rules plus the tiered cascade. Segments a page into UI spans, classifies each, and merges results.</p></div>
+    </div>
+
+    <!-- 3. Tech stack -->
+    <div class="sub-block">
+      <h3>Tech stack</h3>
+      <div class="stack-grid">
+        <div class="stack-col"><h4>Engine</h4><ul><li>Python</li><li>scikit-learn <span>TF-IDF + LogReg</span></li><li>BeautifulSoup <span>parsing</span></li><li>sentence-transformers <span>optional</span></li></ul></div>
+        <div class="stack-col"><h4>Backend</h4><ul><li>Flask</li><li>SQLite</li><li>Anthropic API <span>optional tier</span></li></ul></div>
+        <div class="stack-col"><h4>Frontend</h4><ul><li>React</li><li>Recharts</li><li>Vanilla JS <span>browser demo</span></li></ul></div>
+        <div class="stack-col"><h4>Extension</h4><ul><li>Chrome Manifest V3</li><li>Content scripts</li></ul></div>
       </div>
     </div>
 
-    <h3 class="hood-sub">Engineering decisions &amp; problems solved</h3>
-    <ul class="hood-list">
-      <li><b>A cost-aware cascade, not a single model.</b> Cheap tiers settle the easy cases; only genuinely ambiguous spans escalate to embeddings, then an LLM. A 200-span page costs a handful of LLM calls instead of 200.</li>
-      <li><b>A gated distillation loop.</b> When the expensive tiers confidently resolve something the cheap one couldn't, that verdict is captured to teach the cheap tier — but it's gated (high-confidence only), kept in a separate store, excluded from training by default, and always overridable by human feedback. Auto-training on a model's own guesses causes drift; the gating is the point.</li>
-      <li><b>A real false-positive, fixed.</b> The original "disguised ads" rule matched the substring <code>brand</code>, so Bootstrap's ubiquitous <code>navbar-brand</code> flagged a huge share of normal sites. Narrowed to word-boundary ad tokens; regression-tested.</li>
-      <li><b>Label validation on the feedback loop.</b> User corrections are checked against the taxonomy server-side, so a typo can't create a phantom class that poisons the next retrain.</li>
-      <li><b>Tested.</b> 19 backend tests cover the retriever, the cascade routing, the distillation guardrails, and the detection logic — all runnable with no API key.</li>
-    </ul>
+    <!-- 4. Design decisions -->
+    <div class="sub-block">
+      <h3>Design decisions</h3>
+      <div class="twocol">
+        <ul class="hood-list">
+          <li><b>A cascade, not one big model.</b> Keyword rules are precise but brittle; an LLM on every span is accurate but slow and costly. The cascade gets the LLM's quality on hard cases while paying for it only on hard cases.</li>
+          <li><b>TF-IDF before embeddings.</b> Character n-grams already generalise to reworded patterns at near-zero cost and no model download, so they run before the heavier semantic tier, which only handles what they can't.</li>
+        </ul>
+        <ul class="hood-list">
+          <li><b>Per-span classification.</b> Dark patterns are localised to one button or banner. Segmenting the page and classifying each element keeps the signal sharp instead of drowning it in whole-page text.</li>
+          <li><b>Browser-side inference for the demo.</b> Exporting the model to run client-side means the public demo needs no server, can't run up a bill, and never sees user data.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 5. Challenges & bugs -->
+    <div class="sub-block">
+      <h3>Engineering challenges &amp; bugs fixed</h3>
+      <ul class="hood-list">
+        <li><b>A real false-positive.</b> The original "disguised ads" rule matched the substring <code>brand</code>, so Bootstrap's ubiquitous <code>navbar-brand</code> flagged a huge share of normal sites. Root cause: substring matching where token matching was needed. Narrowed to word-boundary ad tokens and added a regression test so it can't come back.</li>
+        <li><b>Feedback could poison the model.</b> The feedback endpoint accepted any label string, so a typo like "Confirmshamming" would create a phantom class on the next retrain. Added server-side validation against the taxonomy.</li>
+        <li><b>Distillation risked model collapse.</b> Letting the LLM's verdicts train the cheap tier is powerful but dangerous, training on a model's own guesses drifts toward its mistakes. Gated it: high-confidence only, separate store, excluded from training by default, human feedback always wins.</li>
+      </ul>
+    </div>
+
+    <!-- 6. Testing -->
+    <div class="sub-block">
+      <h3>Testing</h3>
+      <ul class="hood-list">
+        <li><b>19 backend tests</b>, all runnable with no API key.</li>
+        <li>Cover the cascade routing (cheap tiers settle confident cases, uncertain ones escalate), the distillation guardrails (low-confidence verdicts aren't captured; human feedback overrides machine labels), and the detection logic including the navbar-brand regression.</li>
+        <li>The browser port has its own parity test asserting the JS classifier matches the Python model.</li>
+      </ul>
+    </div>
+
+    <!-- 7. Reliability & safety -->
+    <div class="sub-block">
+      <h3>Reliability &amp; safety</h3>
+      <ul class="hood-list">
+        <li><b>Confidence thresholds</b> gate every escalation, so a tier only overrides a cheaper one when it's genuinely more certain.</li>
+        <li><b>Graceful degradation</b>, if scikit-learn, the embedding model, or the LLM key is missing, that tier is skipped and the system still runs on whatever's available.</li>
+        <li><b>Distillation guardrails</b> against model collapse, plus human-feedback validation against the taxonomy.</li>
+      </ul>
+    </div>
+
+    <!-- 8. Deployment -->
+    <div class="sub-block">
+      <h3>Deployment</h3>
+      <ul class="hood-list">
+        <li>Environment-based configuration, optional tiers toggle via env vars (<code>DARKSCAN_USE_EMBEDDINGS</code>, <code>DARKSCAN_USE_LLM</code>, <code>DARKSCAN_DISTILL</code>).</li>
+        <li>The public demo is fully static (the model exported to JSON), deployable to any static host or CDN with no backend.</li>
+        <li>The URL-scan feature ships a small serverless function (Cloudflare/Vercel) with a CORS-proxy fallback.</li>
+      </ul>
+    </div>
+
+    <!-- 9. Scaling (future) -->
+    <div class="sub-block">
+      <h3>Scaling considerations <span style="color:var(--dim);font-weight:400;font-size:12px">,  future work, not yet built</span></h3>
+      <ul class="hood-list">
+        <li>Versioned model releases so clients can pin a known model.</li>
+        <li>An incremental retraining pipeline driven by accumulated feedback, rather than full retrains.</li>
+        <li>Pushing more inference browser-side to keep server load flat as usage grows.</li>
+      </ul>
+    </div>
+
+    <!-- 10. Lessons -->
+    <div class="sub-block">
+      <h3>What I'd do differently</h3>
+      <ul class="hood-list">
+        <li>Store scans in a schema'd table from the start rather than JSON blobs, querying patterns across history would be cleaner.</li>
+        <li>Add evaluation telemetry early, so model changes could be measured against a held-out set automatically instead of by hand.</li>
+        <li>Build the feedback/review UI alongside the model, not after, the loop is only as good as how easily a human can correct it.</li>
+      </ul>
+    </div>
+
+    <!-- honest limitations -->
+    <div class="sub-block">
+      <h3>Honest limitations</h3>
+      <ul class="hood-list">
+        <li>The classifier is trained on a <b>small seed dataset</b>, it's a working proof of concept, not a production detector, and accuracy scales with more labelled data.</li>
+        <li>It analyses <b>text</b>. Purely visual dark patterns, a greyed-out decline button, misleading colour, are out of scope for the ML tier and left to the heuristics.</li>
+        <li>Per-category accuracy is uneven where the seed data is thinnest; the feedback loop is what closes that gap over time.</li>
+      </ul>
+    </div>
 
     <p class="hood-foot">
-      Want the detail? The <a id="repo2" href="#">repository</a> has the architecture write-up, the
-      test suite, and an honest "limitations" section.
+      Full detail, the test suite, and the complete limitations section are in the
+      <a id="repo2" href="#">repository</a>.
     </p>
   </section>
 
@@ -256,16 +375,16 @@
 <script>
 const EXAMPLES = {
   "Confirmshaming modal": `<div class="modal">
-  <h2>Wait — get 20% off your first order</h2>
+  <h2>Wait, get 20% off your first order</h2>
   <button>Yes, I want to save</button>
   <a href="#">Nah, I'd rather pay full price like a chump</a>
 </div>`,
   "Fake urgency": `<div class="banner">
-  <p>🔥 FLASH SALE — only 2 left in stock, hurry!</p>
+  <p>🔥 FLASH SALE, only 2 left in stock, hurry!</p>
   <span class="timer" data-countdown>Ends in 09:58</span>
   <p>17 people are viewing this right now</p>
 </div>`,
-  "Sneaky subscription": `<p>Start your free trial — no credit card required.</p>
+  "Sneaky subscription": `<p>Start your free trial, no credit card required.</p>
 <p>After your 7 days, you'll be billed automatically at $29.99/month.</p>
 <p>To cancel, please call our support line during office hours.</p>`,
   "Reworded (unseen)": `we quietly bill your card once the trial lapses
@@ -284,9 +403,9 @@ const SRC_COLOR = { heuristic:"#4e9eff", ml:"#a855f7" };
 const $ = (id) => document.getElementById(id);
 const elInput = $("input"), elResults = $("results"), elStatus = $("status"), elRun = $("run");
 
-// repo link — set to your GitHub once published
-$("repo").href = "https://github.com/oisinmcsherry/darkscan";
-const repo2 = $("repo2"); if (repo2) repo2.href = "https://github.com/oisinmcsherry/darkscan";
+// repo link, set to your GitHub once published
+$("repo").href = "https://github.com/Oisin33/DarkScan";
+const repo2 = $("repo2"); if (repo2) repo2.href = "https://github.com/Oisin33/DarkScan";
 
 // build example chips
 const chipBox = $("examples");
@@ -355,9 +474,11 @@ document.querySelectorAll(".tab").forEach((tab) => {
 // in order: a same-origin serverless function (best, if deployed) → a public CORS
 // proxy (works on plain static hosting, best-effort) → a clear failure message.
 const FETCHERS = [
-  (u) => `./api/scan-url?url=${encodeURIComponent(u)}`,
+  (u) => `./api/scan-url?url=${encodeURIComponent(u)}`,                       // same-origin function (best, if deployed on CF/Vercel)
+  (u) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`, // public proxies (best-effort on static hosts)
   (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
   (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  (u) => `https://thingproxy.freeboard.io/fetch/${u}`,
 ];
 
 function normaliseUrl(raw) {
@@ -367,15 +488,27 @@ function normaliseUrl(raw) {
   return raw;
 }
 
+// Fetch with a timeout so one hung proxy doesn't stall the whole chain.
+async function fetchWithTimeout(url, ms = 9000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { redirect: "follow", signal: ctrl.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 async function fetchPage(url) {
   let lastErr;
   for (const make of FETCHERS) {
     try {
-      const resp = await fetch(make(url), { redirect: "follow" });
+      const resp = await fetchWithTimeout(make(url));
       if (!resp.ok) { lastErr = new Error("HTTP " + resp.status); continue; }
       const html = await resp.text();
-      if (html && html.length > 50) return html;
-      lastErr = new Error("empty response");
+      // Guard against proxies that return their own error page as 200.
+      if (html && html.length > 200 && /<[a-z]/i.test(html)) return html;
+      lastErr = new Error("empty or non-HTML response");
     } catch (e) { lastErr = e; }
   }
   throw lastErr || new Error("could not fetch");
@@ -413,7 +546,7 @@ scanBtn.onclick = scanUrl;
 urlInput.addEventListener("keydown", (e) => { if (e.key === "Enter") scanUrl(); });
 
 loadModel().then(() => {
-  elStatus.textContent = "Model loaded — ready.";
+  elStatus.textContent = "Model loaded, ready.";
   elRun.disabled = false;
 }).catch(() => { elStatus.textContent = "Could not load model.json"; });
 elRun.disabled = true;

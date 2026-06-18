@@ -1,8 +1,8 @@
-// detector.js — the dark-pattern detector, running entirely in the browser.
+// detector.js, the dark-pattern detector, running entirely in the browser.
 //
 // Two engines, mirroring the Python backend:
-//   1. a heuristic pass (regex / keyword rules) — fast, high precision
-//   2. a learning pass — the trained scikit-learn classifier, exported to
+//   1. a heuristic pass (regex / keyword rules), fast, high precision
+//   2. a learning pass, the trained scikit-learn classifier, exported to
 //      model.json, with inference reimplemented here in plain JS
 //
 // The classifier maths replicates sklearn's TfidfVectorizer (word + char_wb
@@ -24,7 +24,7 @@ const HEURISTICS = [
       /ends (?:in|tonight|today|soon)/i, /\d+ people (?:are )?(?:viewing|looking)/i,
       /while supplies last/i, /before (?:it'?s|they'?re) gone/i,
     ],
-    recommendation: "Check the same offer elsewhere — urgency claims are often fabricated.",
+    recommendation: "Check the same offer elsewhere, urgency claims are often fabricated.",
   },
   {
     category: "Confirmshaming",
@@ -35,7 +35,7 @@ const HEURISTICS = [
       /no[, ]+i('?ll| will)? (?:pass|stay|keep)/i,
       /keep me (?:poor|uninformed)/i,
     ],
-    recommendation: "Declining an offer is always valid — ignore the guilt-tripping language.",
+    recommendation: "Declining an offer is always valid, ignore the guilt-tripping language.",
   },
   {
     category: "Roach Motel",
@@ -67,7 +67,7 @@ const HEURISTICS = [
       /(?:excludes?|plus|additional|extra) (?:taxes|fees|charges|shipping)/i,
       /before taxes and fees/i, /resort fee/i,
     ],
-    recommendation: "Watch the final total at checkout — fees are often added late.",
+    recommendation: "Watch the final total at checkout, fees are often added late.",
   },
   {
     category: "Forced Continuity",
@@ -87,7 +87,7 @@ const HEURISTICS = [
       /uncheck.{0,30}(?:if you|to)/i, /do not (?:un)?(?:check|tick)/i,
       /leave (?:ticked|checked|blank)/i, /untick to/i,
     ],
-    recommendation: "Re-read opt-out checkboxes carefully — the wording is often deliberately confusing.",
+    recommendation: "Re-read opt-out checkboxes carefully, the wording is often deliberately confusing.",
   },
   {
     category: "Social Proof Manipulation",
@@ -99,16 +99,16 @@ const HEURISTICS = [
       /someone (?:just|nearby) (?:purchased|bought|signed up)/i,
       /\d+% of (?:users|people) (?:recommend|choose)/i,
     ],
-    recommendation: "Treat live 'someone just bought this' notices skeptically — many are fake.",
+    recommendation: "Treat live 'someone just bought this' notices skeptically, many are fake.",
   },
   {
     category: "Disguised Ads",
     severity: "low",
-    // Word-boundary ad tokens only — must NOT match Bootstrap's navbar-brand.
+    // Word-boundary ad tokens only, must NOT match Bootstrap's navbar-brand.
     patterns: [
       /(?:^|[-_ ])(?:native-?ad|sponsored|advertorial|promoted|partner-content)(?:$|[-_ ])/i,
     ],
-    recommendation: "Sponsored content dressed as editorial — check for an 'ad' or 'sponsored' label.",
+    recommendation: "Sponsored content dressed as editorial, check for an 'ad' or 'sponsored' label.",
   },
 ];
 
@@ -297,7 +297,7 @@ function analyse(input) {
       source: "ml",
       confidence: top,
       evidence: hits.slice(0, 4).map((h) => `"${h.span}" (${Math.round(h.confidence * 100)}%)`),
-      recommendation: "Flagged by the learning model, not a fixed rule — likely a novel or reworded instance.",
+      recommendation: "Flagged by the learning model, not a fixed rule, likely a novel or reworded instance.",
     };
   });
 

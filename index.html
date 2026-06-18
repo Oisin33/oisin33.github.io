@@ -3,15 +3,30 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Oisín McSherry — Software Engineer</title>
+<title>Oisín McSherry, Software Engineer</title>
 <meta name="description" content="Software engineer. Projects in applied ML and systems: a dark-pattern detector that learns, and an AI agent that answers questions about any codebase." />
+
+<!-- favicon (inline so there's nothing extra to host) -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2312161e'/%3E%3Cpath d='M32 10 53 22 53 42 32 54 11 42 11 22Z' fill='none' stroke='%23ff3b5c' stroke-width='5'/%3E%3C/svg%3E" />
+<meta name="theme-color" content="#0a0c10" />
+
+<!-- social / unfurl cards -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Oisín McSherry, Software Engineer" />
+<meta property="og:description" content="A dark-pattern detector that learns, and an AI agent that reads codebases to answer questions. Live demos, full source." />
+<meta property="og:image" content="og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Oisín McSherry, Software Engineer" />
+<meta name="twitter:description" content="Applied ML & systems, live, interactive project demos." />
+<meta name="twitter:image" content="og-image.png" />
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
     --bg:#0a0c10; --panel:#12161e; --panel2:#0d1017; --line:#1e2430;
-    --text:#e8ecf4; --muted:#8899aa; --dim:#6b7a99;
+    --text:#e8ecf4; --muted:#8899aa; --dim:#8595ad;
     --red:#ff3b5c; --green:#00d68f; --blue:#4e9eff; --purple:#a855f7; --amber:#ffb347;
   }
   * { box-sizing:border-box; }
@@ -75,6 +90,15 @@
 
   footer { padding:48px 0 70px; color:var(--dim); font-size:13px; border-top:1px solid var(--line); margin-top:30px; }
   footer .links { margin-top:16px; }
+
+  @media (max-width:560px) {
+    .hero { padding:54px 0 36px; }
+    .wrap { padding:0 18px; }
+    .proj { padding:22px 20px; }
+    .proj-top { flex-direction:column; }
+    .links a, .btn { font-size:13px; }
+    .bullets li { font-size:13.5px; }
+  }
 </style>
 </head>
 <body>
@@ -86,16 +110,20 @@
     <p class="role"><b>Software Engineer</b> · applied ML &amp; systems</p>
     <p class="loc">Cork, Ireland</p>
     <p class="bio">
-      I build things that <b>actually run</b> — and I like the parts other people skip:
+      I build things that <b>actually run</b>, and I like the parts other people skip:
       the retrieval bug that silently returns nothing, the learning loop that has to be
-      gated so it doesn't poison itself. Below are two projects you can try right now.
+      gated so it doesn't poison itself. I care about shipping software that's honest about
+      what it does and holds up when someone pokes at it.
+    </p>
+    <p class="bio" style="margin-top:14px">
+      Looking for a <b>software / ML engineering</b> role where I can work across the stack.
+      Two projects you can try right now:
     </p>
     <div class="links">
-      <!-- TODO: replace the href values with your real links -->
-      <a href="https://github.com/YOUR-USERNAME" target="_blank" rel="noopener">↗ GitHub</a>
-      <a href="https://www.linkedin.com/in/YOUR-PROFILE" target="_blank" rel="noopener">↗ LinkedIn</a>
-      <a href="mailto:YOUR-EMAIL@example.com">✉ Email</a>
-      <a href="YOUR-CV.pdf" target="_blank" rel="noopener">↓ CV</a>
+      <a href="https://github.com/Oisin33" target="_blank" rel="noopener">↗ GitHub</a>
+      <a href="https://www.linkedin.com/in/oisin-mcsherry-82b556248" target="_blank" rel="noopener">↗ LinkedIn</a>
+      <a href="mailto:oisinmcsherry@gmail.com">✉ Email</a>
+      <a href="Oisin-McSherry-CV.pdf" target="_blank" rel="noopener">↓ CV</a>
     </div>
   </div>
 </section>
@@ -110,15 +138,15 @@
       <div class="proj-top">
         <div>
           <h3>DarkScan</h3>
-          <p class="hook">A detector for manipulative “dark pattern” UI — confirmshaming, fake urgency,
-          sneaky opt-outs — that <b>learns to catch patterns it has never seen</b>, not just match a keyword list.</p>
+          <p class="hook">A detector for manipulative “dark pattern” UI, confirmshaming, fake urgency,
+          sneaky opt-outs, that <b>learns to catch patterns it has never seen</b>, not just match a keyword list.</p>
         </div>
         <span class="live-dot on"><span class="pulse"></span>Live demo</span>
       </div>
       <ul class="bullets">
         <li>A <b>tiered ML cascade</b>: heuristics → TF-IDF classifier → embeddings → LLM, escalating only the cases the cheap tiers can't settle (cost-aware by design).</li>
-        <li>Generalises to <b>reworded, unseen phrasings</b> via character n-grams — and improves from user feedback through a <b>gated distillation loop</b> with model-collapse guardrails.</li>
-        <li>The <b>real trained model runs in your browser</b> — exported from scikit-learn and reimplemented in JS, verified identical to the Python original.</li>
+        <li>Generalises to <b>reworded, unseen phrasings</b> via character n-grams, and improves from user feedback through a <b>gated distillation loop</b> with model-collapse guardrails.</li>
+        <li>The <b>real trained model runs in your browser</b>, exported from scikit-learn and reimplemented in JS, verified identical to the Python original.</li>
       </ul>
       <div class="stack">
         <span class="tag">Python</span><span class="tag">scikit-learn</span><span class="tag">Flask</span>
@@ -127,7 +155,7 @@
       <div class="cta">
         <a class="btn primary green" href="./darkscan/">▶ Try it live</a>
         <a class="btn ghost" href="./darkscan/#engineering">Engineering deep-dive</a>
-        <a class="btn ghost" href="https://github.com/YOUR-USERNAME/darkscan" target="_blank" rel="noopener">View source</a>
+        <a class="btn ghost" href="https://github.com/Oisin33/DarkScan" target="_blank" rel="noopener">View source</a>
       </div>
     </article>
 
@@ -137,14 +165,14 @@
         <div>
           <h3>Nexus</h3>
           <p class="hook">Ask questions about <b>any GitHub codebase</b> in plain English. An AI agent
-          reads the code — searching, opening files, following references — to answer.</p>
+          reads the code to answer, searching, opening files, and following references as it goes.</p>
         </div>
         <span class="live-dot demo"><span class="pulse"></span>Interactive walkthrough</span>
       </div>
       <ul class="bullets">
         <li>A <b>Claude agent with tool-calling</b> (search, read file, list files, generate docs) over a BM25-indexed repo, with a safety cap on tool rounds.</li>
         <li><b>Real token streaming</b> over SSE, FastAPI backend, TypeScript/React front end, Dockerised with nginx.</li>
-        <li>Hardened through deep bug-audits — including a <b>BM25 retrieval bug that silently returned nothing</b> for common queries, fixed and regression-tested.</li>
+        <li>Hardened through deep bug-audits, including a <b>BM25 retrieval bug that silently returned nothing</b> for common queries, fixed and regression-tested.</li>
       </ul>
       <div class="stack">
         <span class="tag">FastAPI</span><span class="tag">Claude API</span><span class="tag">TypeScript</span>
@@ -153,7 +181,7 @@
       <div class="cta">
         <a class="btn primary purple" href="./nexus/">▶ Interactive walkthrough</a>
         <a class="btn ghost" href="./nexus/#engineering">Engineering deep-dive</a>
-        <a class="btn ghost" href="https://github.com/YOUR-USERNAME/nexus" target="_blank" rel="noopener">View source</a>
+        <a class="btn ghost" href="https://github.com/Oisin33/Nexus" target="_blank" rel="noopener">View source</a>
       </div>
     </article>
 
@@ -162,12 +190,11 @@
 
 <footer>
   <div class="wrap">
-    <div>Built from scratch — heuristics, ML, and the boring-but-important bug fixes. Demos run client-side; nothing you type leaves your machine.</div>
+    <div>Built from scratch, heuristics, ML, and the boring-but-important bug fixes. Demos run client-side; nothing you type leaves your machine.</div>
     <div class="links">
-      <!-- TODO: replace -->
-      <a href="https://github.com/YOUR-USERNAME" target="_blank" rel="noopener">GitHub</a>
-      <a href="https://www.linkedin.com/in/YOUR-PROFILE" target="_blank" rel="noopener">LinkedIn</a>
-      <a href="mailto:YOUR-EMAIL@example.com">Email</a>
+      <a href="https://github.com/Oisin33" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/oisin-mcsherry-82b556248" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="mailto:oisinmcsherry@gmail.com">Email</a>
     </div>
   </div>
 </footer>
